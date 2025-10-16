@@ -1,0 +1,11 @@
+apiVersion: 1
+contactPoints:
+    - orgId: 1
+      name: email_sender
+      receivers:
+        - uid: dexqs7le4y680f
+          type: email
+          settings:
+            addresses: "${RECEIVER}"
+            singleEmail: false
+          disableResolveMessage: false

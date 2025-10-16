@@ -1,0 +1,65 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: 3min_memory_alerte
+      folder: Alertes_Rules
+      interval: 3m
+      rules:
+        - uid: dexr8vaj5asjka
+          title: Alerte_MB_MEMORY_used
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: PBFA97CFB590B2093
+              model:
+                disableTextWrap: false
+                editorMode: code
+                expr: docker_total_memory_available_mb - docker_total_memory_used_mb
+                fullMetaSearch: false
+                includeNullMetadata: true
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+                useBackend: false
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 500
+                        type: lt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 3m
+          keepFiringFor: 5m
+          annotations:
+            description: All containers use {{ docker_total_memory_used_mb}} % MB MEMORY with {{ docker_total_memory_available_mb}} % MB MEMORY capacity !
+            summary: Critical MEMORY capacity on containers
+          labels: {}
+          isPaused: false
+          notification_settings:
+            receiver: email_sender

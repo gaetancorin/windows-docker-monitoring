@@ -1,0 +1,65 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: 3minutes_cpu_alerte
+      folder: Alertes_Rules
+      interval: 3m
+      rules:
+        - uid: fexr7rvoaheyoc
+          title: Alerte_CPU_%_used
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: PBFA97CFB590B2093
+              model:
+                disableTextWrap: false
+                editorMode: builder
+                expr: docker_total_cpu_available_percent - docker_total_cpu_used_percent
+                fullMetaSearch: false
+                includeNullMetadata: true
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+                useBackend: false
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 5
+                        type: lt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 3m
+          keepFiringFor: 3m
+          annotations:
+            description: All containers use {{docker_total_cpu_used_percent}} % CPU with {{docker_total_cpu_available_percent }} % CPU capacity !
+            summary: Critical CPU capacity on containers
+          labels: {}
+          isPaused: false
+          notification_settings:
+            receiver: email_sender

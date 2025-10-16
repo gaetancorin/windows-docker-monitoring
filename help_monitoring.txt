@@ -1,0 +1,42 @@
+-------------- AIDE DOCKER COMPOSE POSTGRE ---------------
+construire le docker compose:
+docker-compose -p monitoring_streaming up -d
+
+forcer a tout rebuild:
+docker-compose -p monitoring_streaming up --build -d
+
+supprimer tout les containers + les volumes
+docker-compose -p monitoring_streaming down -v
+
+redemarrer le docker compose:
+docker-compose -p monitoring_streaming start
+
+arreter le docker compose:
+docker-compose -p monitoring_streaming stop
+
+supprimer le docker compose et docker associés:
+docker-compose -p monitoring_streaming down
+
+recréer le docker compose:
+docker-compose -p monitoring_streaming down
+docker-compose -p monitoring_streaming up -d
+
+----------------------------------
+TUTORIEL PREMIER FONCTIONNEMENT
+! Aller sur docker desktop->Parametre->General-cocher "Expose daemon on tcp://localhost:2375 without TLS"
+Redemarrer Docker desktop
+
+(Cadvisor ne fonctionne pas a cause de WSL)
+- docker_exporter doit affiché les données:
+http://localhost:8000/metrics
+
+-Prometheus doit affiché la connexion avec docker_client en "Up"
+http://localhost:9090/targets
+
+-Sur Grafana, se connecter:
+http://localhost:3000/
+
+-Connecter Grafana a Prometheus:
+Aller dans Datasources->Add new data source->Prometheus
+connection= http://prometheus:9090
+Save and Test

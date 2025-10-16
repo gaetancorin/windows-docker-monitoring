@@ -1,0 +1,45 @@
+services:
+  docker_exporter:
+    build: ./docker_exporter
+    container_name: docker_exporter
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - monitoring_net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+    networks:
+      - monitoring_net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana_provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana_provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana_provisioning/alerting:/etc/grafana/provisioning/alerting
+    restart: unless-stopped
+    networks:
+      - monitoring_net
+
+volumes:
+  grafana_data:
+
+networks:
+  monitoring_net:
+    external: true
+    name: postgres_streaming_default
+

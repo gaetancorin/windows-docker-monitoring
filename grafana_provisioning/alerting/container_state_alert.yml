@@ -1,0 +1,63 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: 1minute
+      folder: Alertes_Rules
+      interval: 1m
+      rules:
+        - uid: cexr5fwj8mw3ke
+          title: Alerte_container_state
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: PBFA97CFB590B2093
+              model:
+                disableTextWrap: false
+                editorMode: code
+                expr: "docker_container_state{job=\"docker_exporter\", instance=\"docker_exporter:8000\", \r\nname=~\"airflow_streaming-airflow-apiserver-1|airflow_streaming-airflow-dag-processor-1|airflow_streaming-airflow-scheduler-1|airflow_streaming-airflow-triggerer-1|airflow_streaming-airflow-worker-1|airflow_streaming-postgres-1|airflow_streaming-redis-1|docker_exporter|grafana|ingestion_streaming|mailhog|pgadmin|postgres_external|prometheus|spark-master|spark-worker-1|spark-worker-2\"}\r\n"
+                fullMetaSearch: false
+                includeNullMetadata: true
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+                useBackend: false
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: eq
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 1m
+          annotations:
+            description: The container {{ .Labels.name }} is DOWN !
+            summary: Fail on Container State
+          isPaused: false
+          notification_settings:
+            receiver: email_sender
