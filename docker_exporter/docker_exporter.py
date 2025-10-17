@@ -1,12 +1,13 @@
 from prometheus_client import start_http_server, Gauge
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import docker
 import time
 from datetime import datetime
 
 # Connexion au daemon Docker via TCP sur Windows (docker exporter dans container)
-# client = docker.DockerClient(base_url="tcp://host.docker.internal:2375")
+client = docker.DockerClient(base_url="tcp://host.docker.internal:2375")
 # Connexion au daemon Docker via TCP sur Windows (docker exporter en local)
-client = docker.DockerClient(base_url="tcp://localhost:2375")
+# client = docker.DockerClient(base_url="tcp://localhost:2375")
 
 container_state_gauge = Gauge(
     'docker_container_state',
@@ -57,18 +58,18 @@ def update_metrics():
             state = 0
         container_state_gauge.labels(name=c.name).set(state)
 
-    # Récupérer le nombre de coeurs CPU total disponible sur le serveur
+    # Récupérer le nombre de coeurs CPU total disponible sur le serveur (600% pour 6 coeurs CPU)
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Start count number CPUs on serveur")
-    total_cpu_available = 0
+    pourcent_total_cpu_available = 0
     if containers:
         stats = containers[0].stats(stream=False)
         try:
-            total_cpu_available = int(stats["cpu_stats"]["online_cpus"])
-            print(f"Coeurs CPU théorique du serveur :", total_cpu_available)
+            pourcent_total_cpu_available = int(stats["cpu_stats"]["online_cpus"] * 100)
+            print(f"Coeurs CPU théorique du serveur :", pourcent_total_cpu_available, "%")
         except Exception as e:
             print("ERROR :", e)
-            total_cpu_available = 0
-        total_cpu_available_gauge.set(total_cpu_available)
+            pourcent_total_cpu_available = 0
+        total_cpu_available_gauge.set(pourcent_total_cpu_available)
 
     # Récupérer le nombre de nanosecondes de CPU total consommé par le serveur entre 2 snap
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Start count nanosecs used by serveur")
@@ -87,43 +88,46 @@ def update_metrics():
             print("ERROR :", e)
             delta_nanosecs_serveur = 0
 
+
+    def get_pourcent_cpu_usage_by_container(c, delta_nanosecs_serveur, pourcent_total_cpu_available):
+        try:
+            stats = c.stats(stream=False)
+            last_ns = stats["precpu_stats"]["cpu_usage"]["total_usage"]
+            current_ns = stats["cpu_stats"]["cpu_usage"]["total_usage"]
+            delta_ns = current_ns - last_ns
+
+            if delta_nanosecs_serveur > 0 and delta_ns > 0:
+                cpu_percent = (delta_ns / delta_nanosecs_serveur) * pourcent_total_cpu_available
+                cpu_percent = round(cpu_percent, 2)
+                container_cpu_used_gauge.labels(name=c.name).set(cpu_percent)
+                print(f"CPU {c.name}: {delta_ns} ns = {cpu_percent}% / {pourcent_total_cpu_available} available")
+                return cpu_percent
+            else:
+                container_cpu_used_gauge.labels(name=c.name).set(0)
+                return 0.0
+        except Exception as e:
+            print(f"ERROR {c.name}: {e}")
+            container_cpu_used_gauge.labels(name=c.name).set(0)
+            return 0.0
+
     # Récupérer le nombre de nanosecondes de CPU total consommé par chaque containeurs entre 2 snap, puis le % d'utilisation
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Start consommation nanosecs CPUs par containers")
     pourcent_cpu_used_by_all_containers = 0.0
-    for c in containers:
-        if c.status == "running" or c.status == "created":
-            try:
-                ##### Récupérer le nombre de nanosecondes de CPU total consommé par conteneur entre 2 snap
-                stats = c.stats(stream=False)
-                # Utilisation nanosecs CPU du conteneur lors de la mesure précédente
-                last_nanosecs_cpu_container = stats["precpu_stats"]["cpu_usage"]["total_usage"]
-                # Utilisation nanosecs CPU du conteneur au moment présent
-                current_nanosecs_cpu_container = stats["cpu_stats"]["cpu_usage"]["total_usage"]
-                # Différence = consommation nanosecs CPU du conteneur entre les deux mesures
-                delta_nanosecs_container = current_nanosecs_cpu_container - last_nanosecs_cpu_container
+    cpu_result_conteneurs = []
+    with ThreadPoolExecutor(max_workers=50) as executor:
+        for c in containers:
+            if c.status == "running" or c.status == "created":
+                cpu_result_conteneurs.append(executor.submit(get_pourcent_cpu_usage_by_container, c, delta_nanosecs_serveur, pourcent_total_cpu_available))
+            else:
+                # Supprimer les metrics des conteneurs arrêtés
+                container_cpu_used_gauge.remove(c.name)
 
-                ##### Transforme les nanosecondes CPU utilé par le conteneur en % d'utilisation
-                container_cpu_percent_used = 0.0
-                if delta_nanosecs_serveur > 0 and delta_nanosecs_container > 0:
-                    #Multiplier par le nombres de coeurs CPU pour avoir un ratio 600% pour 6 coeurs par ex
-                    pourcent_total_cpu_available = total_cpu_available * 100.0
-                    # Calcul du % de nanosecs d'utilisation CPU du conteneur par rapport au serveur global
-                    # Puis multiplier par le % de coeurs disponible pour faciliter la comparaison (ex: 120/600%)
-                    container_cpu_percent_used = (delta_nanosecs_container / delta_nanosecs_serveur) * pourcent_total_cpu_available
-                    # arrondis x.xx %
-                    container_cpu_percent_used = round(container_cpu_percent_used, 2)
-                    container_cpu_used_gauge.labels(name=c.name).set(container_cpu_percent_used)
-                    print(f"CPU {c.name} :", delta_nanosecs_container, "nanosecs =", container_cpu_percent_used, "% /", pourcent_total_cpu_available, " available")
-
-                    ##### Additionne les % d'utilisations des conteneurs pour avoir un % global d'utilisation du serveur
-                    pourcent_cpu_used_by_all_containers += container_cpu_percent_used
-
-            except Exception as e:
-                container_cpu_used_gauge.labels(name=c.name).set(0)
-        else:
-            container_cpu_used_gauge.remove(c.name)
-    print(f"Total % CPU used on serveur {round(pourcent_cpu_used_by_all_containers, 2)} %")
-    total_cpu_used_gauge.set(round(pourcent_cpu_used_by_all_containers, 2))
+        # Récupération des résultats de tout les conteneurs
+        for cpu_result_conteneur in as_completed(cpu_result_conteneurs):
+            pourcent_cpu_used_by_all_containers += cpu_result_conteneur.result()
+        # Calcul de l'utilisation de CPU total des conteneurs
+        print(f"Total % CPU used on serveur {round(pourcent_cpu_used_by_all_containers, 2)} %")
+        total_cpu_used_gauge.set(round(pourcent_cpu_used_by_all_containers, 2))
 
 
     # Récupérer la capacité de mémoire total disponible sur le serveur
@@ -143,30 +147,41 @@ def update_metrics():
         except Exception as e:
             pass
 
+    def get_memory_usage_by_container(c, total_memory_available_mb):
+        try:
+            stats = c.stats(stream=False)
+            # nombre de octets (Bytes) utilisés par le conteneur
+            container_memory_used_bytes = stats["memory_stats"]["usage"]
+            # nombre de MegaBytes utilisés par le conteneur
+            container_memory_used_mb = container_memory_used_bytes / (1024 * 1024)
+            # arrondis x.xx MB
+            container_memory_used_mb = round(container_memory_used_mb, 2)
+            container_memory_used_gauge.labels(name=c.name).set(container_memory_used_mb)
+            print(f"Memory {c.name} : {container_memory_used_mb} MB / {total_memory_available_mb} MB available")
+            return container_memory_used_mb
+        except Exception as e:
+            print(f"ERROR MEM {c.name}: {e}")
+            container_memory_used_gauge.labels(name=c.name).set(-1)
+            return 0.0
+
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Start consommation memory par containers")
     total_memory_used = 0.0
-    for c in containers:
-        if c.status == "running":
-            try:
-                stats = c.stats(stream=False)
-                # nombre de octets (Bytes) utilisés par le conteneur
-                container_memory_used_bytes = stats["memory_stats"]["usage"]
-                # nombre de MegaBytes utilisés par le conteneur
-                container_memory_used_mb = container_memory_used_bytes / (1024 * 1024)
-                # arrondis x.xx MB
-                container_memory_used_mb = round(container_memory_used_mb, 2)
-                container_memory_used_gauge.labels(name=c.name).set(container_memory_used_mb)
-                print(f"Memory {c.name} : {container_memory_used_mb} MegaBytes / {total_memory_available_mb} available")
+    memory_result_conteneurs = []
 
-                ##### Additionne les MB des conteneurs pour avoir un total de MB global d'utilisation du serveur
-                total_memory_used += container_memory_used_mb
-            except Exception as e:
-                # Si erreur, mettre les metrics à -1
-                container_memory_used_gauge.labels(name=c.name).set(-1)
-        else:
-            container_memory_used_gauge.remove(c.name)
-    print(f"Total MegaBytes used on serveur {round(total_memory_used, 2)} MB / {total_memory_available_mb} MB available")
-    total_memory_used_gauge.set(round(total_memory_used, 2))
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        for c in containers:
+            if c.status == "running":
+                memory_result_conteneurs.append(executor.submit(get_memory_usage_by_container, c, total_memory_available_mb))
+            else:
+                # Supprimer les metrics des conteneurs arrêtés
+                container_memory_used_gauge.remove(c.name)
+
+        # Récupération des résultats de tout les conteneurs
+        for memory_result_conteneur in as_completed(memory_result_conteneurs):
+            total_memory_used += memory_result_conteneur.result()
+        # Calcul de l'utilisation de la mémoire total des conteneurs
+        print(f"Total MegaBytes used on serveur {round(total_memory_used, 2)} MB / {total_memory_available_mb} MB available")
+        total_memory_used_gauge.set(round(total_memory_used, 2))
 
 
 

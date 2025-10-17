@@ -40,6 +40,4 @@ volumes:
 
 networks:
   monitoring_net:
-    external: true
-    name: postgres_streaming_default
 

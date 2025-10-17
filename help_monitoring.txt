@@ -1,4 +1,4 @@
--------------- AIDE DOCKER COMPOSE POSTGRE ---------------
+-------------- AIDE DOCKER COMPOSE ---------------
 construire le docker compose:
 docker-compose -p monitoring_streaming up -d
 
@@ -35,8 +35,3 @@ http://localhost:9090/targets
 
 -Sur Grafana, se connecter:
 http://localhost:3000/
-
--Connecter Grafana a Prometheus:
-Aller dans Datasources->Add new data source->Prometheus
-connection= http://prometheus:9090
-Save and Test
