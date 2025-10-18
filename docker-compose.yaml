@@ -24,13 +24,16 @@ services:
     container_name: grafana
     ports:
       - "3000:3000"
-    env_file:
-      - .env
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+#    env_file:
+#      - .env
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana_provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./grafana_provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana_provisioning/alerting:/etc/grafana/provisioning/alerting
+#      - ./grafana_provisioning/alerting:/etc/grafana/provisioning/alerting
     restart: unless-stopped
     networks:
       - monitoring_net

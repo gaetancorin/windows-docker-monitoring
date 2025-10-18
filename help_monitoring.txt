@@ -1,37 +1,24 @@
--------------- AIDE DOCKER COMPOSE ---------------
-construire le docker compose:
-docker-compose -p monitoring_streaming up -d
-
-forcer a tout rebuild:
+-------------- HELP DOCKER COMPOSE ---------------
+build docker compose containers:
 docker-compose -p monitoring_streaming up --build -d
 
-supprimer tout les containers + les volumes
+delete all containers and all volumes
 docker-compose -p monitoring_streaming down -v
 
-redemarrer le docker compose:
-docker-compose -p monitoring_streaming start
-
-arreter le docker compose:
-docker-compose -p monitoring_streaming stop
-
-supprimer le docker compose et docker associés:
+delete all containers
 docker-compose -p monitoring_streaming down
-
-recréer le docker compose:
-docker-compose -p monitoring_streaming down
-docker-compose -p monitoring_streaming up -d
 
 ----------------------------------
-TUTORIEL PREMIER FONCTIONNEMENT
-! Aller sur docker desktop->Parametre->General-cocher "Expose daemon on tcp://localhost:2375 without TLS"
-Redemarrer Docker desktop
+FIRST RUN TUTORIAL
+1- Go to Docker Desktop → Settings → General → check “Expose daemon on tcp://localhost:2375 without TLS”
+2- Restart Docker Desktop
 
-(Cadvisor ne fonctionne pas a cause de WSL)
-- docker_exporter doit affiché les données:
+(Tool 'cAdvisor' does not work properly because of WSL, so docker-exporter is used instead)
+-docker_exporter:
 http://localhost:8000/metrics
 
--Prometheus doit affiché la connexion avec docker_client en "Up"
+-Prometheus:
 http://localhost:9090/targets
 
--Sur Grafana, se connecter:
+-Grafana:
 http://localhost:3000/

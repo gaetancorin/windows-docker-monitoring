@@ -116,6 +116,7 @@ def get_total_memory_available_on_server(containers):
     return total_memory_available_mb
 
 def get_pourcent_cpu_usage_for_one_container(c, pourcent_cpu_available_on_server, cpu_nanoseconds_used_by_server):
+    # Get nanoseconds of CPU used and convert to pourcent for one container
     try:
         stats = c.stats(stream=False)
         # Total CPU nanoseconds used by one container during the previous measurement
@@ -141,8 +142,8 @@ def get_pourcent_cpu_usage_for_one_container(c, pourcent_cpu_available_on_server
         return 0.0
 
 def get_cpu_pourcent_used_by_each_container(containers, pourcent_cpu_available_on_server, cpu_nanoseconds_used_by_server):
-    # Get the total CPU nanoseconds used by each container between two snapshots, then calculate the usage percentage
-    logging.info(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] (task 5) Start fetching CPU nanoseconds usage per container")
+    # Get the pourcent of CPU used by all containers
+    logging.info(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] (task 5) Start fetching CPU nanoseconds and pourcent usage per container")
     pourcent_cpu_used_by_all_containers = 0.0
     cpu_result_containeurs = []
     with ThreadPoolExecutor(max_workers=10) as executor:
@@ -162,6 +163,7 @@ def get_cpu_pourcent_used_by_each_container(containers, pourcent_cpu_available_o
         total_cpu_used_gauge.set(round(pourcent_cpu_used_by_all_containers, 2))
 
 def get_memory_usage_by_container(c, total_memory_mb_available_on_server):
+    # Get the memory usage and convert to pourcent for one container
     try:
         stats = c.stats(stream=False)
         # Number of bytes (octets) used by the container
@@ -179,7 +181,8 @@ def get_memory_usage_by_container(c, total_memory_mb_available_on_server):
         return 0.0
 
 def get_memory_used_for_each_container(containers, total_memory_mb_available_on_server):
-    logging.info(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] (task 6) Start fetching memory usage per container")
+    # Get the pourcent of memory used for each container
+    logging.info(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] (task 6) Start fetching memory usage and pourcent used per container")
     total_memory_used = 0.0
     memory_result_containeurs = []
 
