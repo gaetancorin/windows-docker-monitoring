@@ -21,7 +21,7 @@ docker-compose up -d
 ```
 
 Here is the installation tutorial video:
-https://www.youtube.com/@gaetancrrn1716/videos
+https://youtu.be/LkaQknRLcgk
 
 ## Configuration
 
