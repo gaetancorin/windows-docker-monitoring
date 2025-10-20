@@ -36,4 +36,5 @@ Docker-exporter: http://localhost:8000/
 Prometheus: http://localhost:9090/targets
 
 Grafana: http://localhost:3000/login
+(Grafana default user/pass : admin/admin)
 
