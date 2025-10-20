@@ -20,12 +20,8 @@ Monitor your Docker containers on Windows using Docker Desktop, Prometheus, and 
 docker-compose up -d
 ```
 
-## Video Tutorial
-
-## Screenshot
-
-Grafana Dashboard
-![Grafana Dashboard Dashboard](./screen_dashboard.png)
+Here is the installation tutorial video:
+https://www.youtube.com/@gaetancrrn1716/videos
 
 ## Configuration
 
@@ -37,4 +33,11 @@ Prometheus: http://localhost:9090/targets
 
 Grafana: http://localhost:3000/login
 (Grafana default user/pass : admin/admin)
+
+## Screenshot
+
+Grafana Dashboard
+![Grafana Dashboard Dashboard](./screen_dashboard.png)
+
+
 
