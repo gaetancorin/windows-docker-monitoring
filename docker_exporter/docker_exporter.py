@@ -64,7 +64,7 @@ def get_pourcent_cpu_available_on_server(containers):
     # Get the total number of CPU cores available on the server (for example, 600% for 6 CPU cores)
     logging.info(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] (task 2) Start counting the number of CPUs on the server")
     if containers:
-        stats = containers[0].stats(stream=False)
+        stats = containers[-1].stats(stream=False)
         try:
             pourcent_total_cpu_available = int(stats["cpu_stats"]["online_cpus"] * 100)
             logging.info(f"(task 2 done) Theoretical pourcent CPU cores on the server: {pourcent_total_cpu_available}%")
@@ -78,7 +78,7 @@ def get_cpu_nanoseconds_used_by_server(containers):
     # Get the total CPU nanoseconds used by the server between two snapshots
     logging.info(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] (task 3) Start counting CPU nanoseconds used by the server")
     if containers:
-        stats = containers[0].stats(stream=False)
+        stats = containers[-1].stats(stream=False)
         try:
             # Total CPU nanoseconds used by the server (all containers) during the previous measurement
             last_nanosecs_cpu_serveur = stats["precpu_stats"]["system_cpu_usage"]
@@ -96,7 +96,7 @@ def get_total_memory_available_on_server(containers):
     # Get the total memory available on the server
     logging.info(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] (task 4) Get total memory in megabytes available on the server")
     if containers:
-        stats = containers[0].stats(stream=False)
+        stats = containers[-1].stats(stream=False)
         try:
             # Number of bytes(octets) used by the server
             total_memory_available_bytes = stats["memory_stats"]["limit"]

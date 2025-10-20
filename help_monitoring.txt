@@ -13,7 +13,7 @@ FIRST RUN TUTORIAL
 1- Go to Docker Desktop → Settings → General → check “Expose daemon on tcp://localhost:2375 without TLS”
 2- Restart Docker Desktop
 
-(Tool 'cAdvisor' does not work properly because of WSL, so docker-exporter is used instead)
+(Tool 'cAdvisor' does not work properly because of windows WSL, so docker-exporter is used instead)
 -docker_exporter:
 http://localhost:8000/metrics
 
