@@ -34,10 +34,15 @@ Prometheus: http://localhost:9090/targets
 Grafana: http://localhost:3000/login
 (Grafana default user/pass : admin/admin)
 
+## Want to enable email alerts in your monitoring setup?
+
+Follow the step-by-step guide here: [Grafana Email Alert Tutorial](grafana_email_alert_tutorial.md)
+
 ## Screenshot
 
 Grafana Dashboard
 ![Grafana Dashboard Dashboard](./screen_dashboard.png)
 
+---
 
-
+If you enjoy this project, ⭐ please give it a star!
