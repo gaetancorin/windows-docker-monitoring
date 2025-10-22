@@ -2,6 +2,10 @@
 
 Monitor your Docker containers on Windows using Docker Desktop, Prometheus, and Grafana.
 
+## Screenshot Grafana Dashboard
+
+![Grafana Dashboard Dashboard](./screen_dashboard.png)
+
 ## Pre-requisites
 
 * docker on windows
@@ -37,11 +41,6 @@ Grafana: http://localhost:3000/login
 ## Want to enable email alerts in your monitoring setup?
 
 Follow the step-by-step guide here: [Grafana Email Alert Tutorial](grafana_email_alert_tutorial.md)
-
-## Screenshot
-
-Grafana Dashboard
-![Grafana Dashboard Dashboard](./screen_dashboard.png)
 
 ---
 
