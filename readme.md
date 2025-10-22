@@ -24,7 +24,9 @@ Monitor your Docker containers on Windows using Docker Desktop, Prometheus, and 
 docker-compose up -d
 ```
 
-Here is the installation tutorial video:
+4. That's it !
+
+If you encounter any problems, here’s a video tutorial for the installation:
 https://youtu.be/LkaQknRLcgk
 
 ## Configuration
