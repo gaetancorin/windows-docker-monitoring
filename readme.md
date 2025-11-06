@@ -1,5 +1,7 @@
 # Docker Monitoring Dashboard for Windows
 
+[<img src="https://img.shields.io/badge/LinkedIn-Gaetan%20Corin%20–%20Data%20Engineer-blue.svg?logo=linkedin" alt="LinkedIn" style="vertical-align: middle;"/>](https://www.linkedin.com/in/gaetancorin/)
+
 Monitor your Docker containers on Windows using Docker Desktop, Prometheus, and Grafana.
 
 ## Screenshot Grafana Dashboard
